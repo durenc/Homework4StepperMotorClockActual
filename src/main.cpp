@@ -1,7 +1,4 @@
 #include <Arduino.h>
-// Two A4988 stepper motors on ESP32-S3
-// drv1: STEP=13, DIR=12   (24-hour rack)
-// drv2: STEP=10, DIR=9    (0–60 minute rack)
 #include <WiFi.h>
 #include <time.h>
 
@@ -17,17 +14,17 @@ const int Home2 = 6;
 unsigned long currentHour=0;
 unsigned long currentMin=0;
 
-// ---- rack & pinion geometry (m=2, 16T, full-step) ----
+// rack and pinion geometry conversions
 const int   STEPS_PER_REV = 200;           // full steps
 const float PD_MM         = 32.0f;         // pitch diameter for 16T, m=2
 const float CIRC_MM       = 3.14159265f * PD_MM;
-const float SPMM          = STEPS_PER_REV / CIRC_MM; // ≈ 1.99 steps/mm
+const float SPMM          = STEPS_PER_REV / CIRC_MM; // 1.99 steps/mm
 
 const float LEN_H_MM      = 120.0f;        // hour rack travel
 const float LEN_M_MM      = 120.0f;        // minute rack travel
 
 inline long mmToSteps(float mm) { return lround(mm * SPMM); }
-
+//steps once
 void stepOnce(int pin, int delayMicros) {
   digitalWrite(pin, HIGH);
   delayMicroseconds(delayMicros);
@@ -36,11 +33,11 @@ void stepOnce(int pin, int delayMicros) {
 }
 
 
-
+//sets up move to for motor
 void moveToMotor1(int stepPin, int dirPin, long &pos, long target, int usHigh = 10000) {
   while (pos != target) {
     if (pos < target) {
-      digitalWrite(dirPin, LOW);   // invert here if travel is mirrored
+      digitalWrite(dirPin, LOW);  
       stepOnce(stepPin, usHigh);
       pos++;
     } else {
@@ -51,10 +48,11 @@ void moveToMotor1(int stepPin, int dirPin, long &pos, long target, int usHigh = 
   }
 }
 
+//needed second one since motors need to go opposite directions
 void moveToMotor2(int stepPin, int dirPin, long &pos, long target, int usHigh = 10000) {
   while (pos != target) {
     if (pos < target) {
-      digitalWrite(dirPin, HIGH);   // invert here if travel is mirrored
+      digitalWrite(dirPin, HIGH); 
       stepOnce(stepPin, usHigh);
       pos++;
     } else {
@@ -71,7 +69,7 @@ long pos2=0;
 void moveTo1(long target, int usHigh = 10000) { moveToMotor1(STEP1, DIR1, pos1, target, usHigh); }
 void moveTo2(long target, int usHigh = 10000) { moveToMotor2(STEP2, DIR2, pos2, target, usHigh); }
 
-// ---- time → rack mapping ----
+// converts times to rack positions
 long targetHourStepsFrom(float t) {
   float h_frac = (t) / 24.0f;  // 0..1
   return mmToSteps(h_frac * LEN_H_MM);
@@ -81,42 +79,18 @@ long targetMinuteStepsFrom(float t) {
   return mmToSteps(m_frac * LEN_M_MM);
 }
 
-/*void setupTime() {
-  setenv("TZ", "CST6CDT,M3.2.0/2,M11.1.0/2", 1);
-  tzset();
-  configTime(-3600*6, 0, "pool.ntp.org", "time.nist.gov");
-
-  Serial.print("Waiting for NTP time sync");
-  time_t now = time(nullptr);
-  while (now < 24 * 3600) {
-    Serial.print(".");
-    delay(500);
-    now = time(nullptr);
-  }
-  Serial.println(" done!");
-
-  struct tm timeinfo;
-  localtime_r(&now,&timeinfo);
-
-  currentHour = timeinfo.tm_hour;
-  currentMin  = timeinfo.tm_min;
-
-  // initial placement on racks
-  moveTo1(targetHourStepsFrom(currentHour));
-  moveTo2(targetMinuteStepsFrom(currentMin));
-}*/
 
 #include <esp_sntp.h>
 
-void setupTime2() {
-  // Single API: sets TZ + NTP servers
+void setupTime() {
+  // sets TZ + NTP servers
   configTzTime("CST6CDT,M3.2.0/2,M11.1.0/2",
                "pool.ntp.org", "time.nist.gov", "time.google.com");
 
-  const time_t EPOCH_OK = 1700000000; // ~Nov 2023
+  const time_t EPOCH_OK = 1700000000; 
   time_t now;
   uint32_t tries = 0;
-  while ((now = time(nullptr)) < EPOCH_OK && tries < 120) { // ~30 s
+  while ((now = time(nullptr)) < EPOCH_OK && tries < 120) { 
     delay(250);
     tries++;
   }
@@ -131,7 +105,7 @@ void setupTime2() {
   moveTo2(targetMinuteStepsFrom(currentMin));
 }
 
-// Update racks. Jump back to start at wraps.
+// Update times
 void printTimeOnly() {
   time_t now = time(nullptr);
   struct tm t;
@@ -139,8 +113,8 @@ void printTimeOnly() {
 
   static int lastHour = -1, lastMinute = -1;
 
-  if (lastHour   != -1 && t.tm_hour < lastHour)   moveTo1(0); // 23->0 wrap
-  if (lastMinute != -1 && t.tm_min  < lastMinute) moveTo2(0); // 59->0 wrap
+  if (lastHour   != -1 && t.tm_hour < lastHour)   moveTo1(0); // goes from 23 to 0
+  if (lastMinute != -1 && t.tm_min  < lastMinute) moveTo2(0); // goes from 59 to 0
 
   currentHour = t.tm_hour;
   currentMin  = t.tm_min;
@@ -184,7 +158,7 @@ bool readTimeFromSerial(int &h, int &m) {
 
 
 
-// Testing code
+// Testing code to move to positions entered via Serial
 void printTimeTest() {
   static int lastHour = -1, lastMinute = -1;
 
@@ -222,9 +196,9 @@ void homeRack(int stepPin, int dirPin, int homePin, long &pos, bool towardHomeIs
   Serial.println(stepPin);
 
   // Move until the home button is pressed
-  while (digitalRead(homePin) == HIGH) {   // HIGH = not pressed
+  while (digitalRead(homePin) == HIGH) {  
     stepOnce(stepPin, 10000); 
-    digitalRead(homePin);               // full step toward home
+    digitalRead(homePin);               
   }
 
   // Set position to zero once switch is hit
@@ -262,7 +236,7 @@ void setup() {
   Serial.println(" Connected!");
   homeRack(STEP1, DIR1, Home1, pos1, false);
   homeRack(STEP2, DIR2, Home2, pos2, true);
-  setupTime2();
+  setupTime();
 }
 
 void loop() {
