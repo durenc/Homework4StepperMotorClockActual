@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/StepperMotorClockActual/include",
-                "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/StepperMotorClockActual/src",
+                "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/MEC4980Hw1/Homework4StepperMotorClockActual/include",
+                "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/MEC4980Hw1/Homework4StepperMotorClockActual/src",
                 "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
@@ -247,8 +247,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/StepperMotorClockActual/include",
-                    "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/StepperMotorClockActual/src",
+                    "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/MEC4980Hw1/Homework4StepperMotorClockActual/include",
+                    "C:/Users/durenc/OneDrive - Milwaukee School of Engineering/Documents/PlatformIO/Projects/MEC4980Hw1/Homework4StepperMotorClockActual/src",
                     "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "C:/Users/durenc/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
